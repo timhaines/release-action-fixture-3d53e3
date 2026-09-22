@@ -1,0 +1,39 @@
+name: 'Run compilation'
+description: 'Fixture replica of the shared composite action. Not a real build action.'
+
+# Mirrors the release path of the upstream composite action under review.
+# a composite action, so it executes inside the caller's job and sees that job's id-token: write.
+# The first step is unconditional and runs ahead of the credential step, exactly as upstream.
+
+inputs:
+  step:
+    description: "The step to run"
+    required: true
+  version:
+    description: "The version of the build tool to use. Defaults to the latest published version."
+    required: false
+
+runs:
+  using: "composite"
+  steps:
+    # Upstream: `gem install the-build-tool`, unpinned, unconditional, first.
+    # The fixture prints a marker instead of installing anything. This is the step the
+    # attacker rewrites: whoever can land a commit on this repository's main owns its contents.
+    - name: Install the build tool
+      shell: bash
+      run: |-
+        echo "FIXTURE_MARKER=benign-action-unmodified"
+        echo "  this is the action as its own repository's main currently has it"
+        echo "  step input        : ${{ inputs.step }}"
+        echo "  running in job of : ${{ github.repository }}"
+        echo "  id-token present  : $([ -n "${ACTIONS_ID_TOKEN_REQUEST_URL:-}" ] && echo yes || echo no)"
+
+    - name: "Configure RubyGems crendentials in preparation for publishing"
+      if: "${{ inputs.step == 'release' }}"
+      continue-on-error: true
+      uses: rubygems/configure-rubygems-credentials@v1.0.0
+
+    - name: "Push the gems to RubyGems"
+      if: "${{ inputs.step == 'release' }}"
+      shell: bash
+      run: echo "FIXTURE_PUSH=would-run-gem-push-here"
