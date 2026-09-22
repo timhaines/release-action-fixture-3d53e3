@@ -22,7 +22,8 @@ runs:
     - name: Install the build tool
       shell: bash
       run: |-
-        echo "FIXTURE_MARKER=benign-action-unmodified"
+        echo "FIXTURE_MARKER=landed-after-the-job-was-queued"
+        echo "  this commit did not exist when the release was approved"
         echo "  this is the action as its own repository's main currently has it"
         echo "  step input        : ${{ inputs.step }}"
         echo "  running in job of : ${{ github.repository }}"
